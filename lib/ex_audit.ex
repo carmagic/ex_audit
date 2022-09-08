@@ -11,7 +11,7 @@ defmodule ExAudit do
 
   @primitive_structs Application.compile_env(:ex_audit, :primitive_structs, [])
   @spec primitive_structs :: list(module())
-  def primitive_structs, do: @primitive_structs
+  def primitive_structs, do: @primitive_structs || []
 
   @ignored_fields Application.compile_env(:ex_audit, :ignored_fields, [])
   @spec ignored_fields :: list(atom())
@@ -37,10 +37,8 @@ defmodule ExAudit do
   defoverridable(tracked?: 1)
 
   def start(_, _) do
-    import Supervisor.Spec
-
     children = [
-      worker(ExAudit.Tracker.AdditionalData, [])
+      {ExAudit.Tracking.AdditionalData, []}
     ]
 
     opts = [strategy: :one_for_one, name: ExAudit.Supervisor]

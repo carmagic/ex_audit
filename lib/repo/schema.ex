@@ -1,12 +1,12 @@
 defmodule ExAudit.Schema do
   # def insert_all(module, name, schema_or_source, entries, tuplet = {_adapter_meta, opts}) do
   #   # TODO!
-  #   opts = ExAudit.AdditionalData.merge_opts(opts)
+  #   opts = ExAudit.Tracking.AdditionalData.merge_opts(opts)
   #   Ecto.Repo.Schema.insert_all(module, name, schema_or_source, entries, tuplet)
   # end
 
   def insert(module, name, struct, tuplet = {_adapter_meta, opts}) do
-    opts = ExAudit.AdditionalData.merge_opts(opts)
+    opts = ExAudit.Tracking.AdditionalData.merge_opts(opts)
 
     augment_transaction(module, fn ->
       result = Ecto.Repo.Schema.insert(module, name, struct, tuplet)
@@ -24,7 +24,7 @@ defmodule ExAudit.Schema do
   end
 
   def update(module, name, struct, tuplet = {_adapter_meta, opts}) do
-    opts = ExAudit.AdditionalData.merge_opts(opts)
+    opts = ExAudit.Tracking.AdditionalData.merge_opts(opts)
 
     augment_transaction(module, fn ->
       result = Ecto.Repo.Schema.update(module, name, struct, tuplet)
@@ -42,7 +42,7 @@ defmodule ExAudit.Schema do
   end
 
   def insert_or_update(module, name, changeset, tuplet = {_adapter_meta, opts}) do
-    opts = ExAudit.AdditionalData.merge_opts(opts)
+    opts = ExAudit.Tracking.AdditionalData.merge_opts(opts)
 
     augment_transaction(module, fn ->
       result = Ecto.Repo.Schema.insert_or_update(module, name, changeset, tuplet)
@@ -61,7 +61,7 @@ defmodule ExAudit.Schema do
   end
 
   def delete(module, name, struct, tuplet = {_adapter_meta, opts}) do
-    opts = ExAudit.AdditionalData.merge_opts(opts)
+    opts = ExAudit.Tracking.AdditionalData.merge_opts(opts)
 
     augment_transaction(module, fn ->
       ExAudit.Tracking.track_assoc_deletion(module, struct, opts)
@@ -80,7 +80,7 @@ defmodule ExAudit.Schema do
   end
 
   def insert!(module, name, struct, tuplet = {_adapter_meta, opts}) do
-    opts = ExAudit.AdditionalData.merge_opts(opts)
+    opts = ExAudit.Tracking.AdditionalData.merge_opts(opts)
 
     augment_transaction(
       module,
@@ -94,7 +94,7 @@ defmodule ExAudit.Schema do
   end
 
   def update!(module, name, struct, tuplet = {_adapter_meta, opts}) do
-    opts = ExAudit.AdditionalData.merge_opts(opts)
+    opts = ExAudit.Tracking.AdditionalData.merge_opts(opts)
 
     augment_transaction(
       module,
@@ -108,7 +108,7 @@ defmodule ExAudit.Schema do
   end
 
   def insert_or_update!(module, name, changeset, tuplet = {_adapter_meta, opts}) do
-    opts = ExAudit.AdditionalData.merge_opts(opts)
+    opts = ExAudit.Tracking.AdditionalData.merge_opts(opts)
 
     augment_transaction(
       module,
@@ -123,7 +123,7 @@ defmodule ExAudit.Schema do
   end
 
   def delete!(module, name, struct, tuplet = {_adapter_meta, opts}) do
-    opts = ExAudit.AdditionalData.merge_opts(opts)
+    opts = ExAudit.Tracking.AdditionalData.merge_opts(opts)
 
     augment_transaction(
       module,

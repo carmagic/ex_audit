@@ -90,7 +90,7 @@ defmodule ExAudit.Repo do
       def insert_or_update(changeset, opts) do
         repo = get_dynamic_repo()
 
-        if ExAudit.tracked?(struct) do
+        if ExAudit.tracked?(changeset) do
           ExAudit.Schema.insert_or_update(
             __MODULE__,
             repo,
@@ -150,7 +150,7 @@ defmodule ExAudit.Repo do
       def insert_or_update!(changeset, opts) do
         repo = get_dynamic_repo()
 
-        if ExAudit.tracked?(struct) do
+        if ExAudit.tracked?(changeset) do
           ExAudit.Schema.insert_or_update!(
             __MODULE__,
             repo,
