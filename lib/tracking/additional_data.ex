@@ -4,13 +4,11 @@ defmodule ExAudit.Tracking.AdditionalData do
   use GenServer
 
   def start_link() do
-    IO.puts("GenServer#start_link")
     GenServer.start_link(__MODULE__, nil, name: __MODULE__)
   end
 
   @impl GenServer
   def init(_) do
-    IO.puts("GenServer#init")
     ets = :ets.new(__MODULE__, [:protected, :named_table])
     {:ok, ets}
   end
