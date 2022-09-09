@@ -7,19 +7,21 @@ defmodule ExAudit.Tracking.AdditionalData do
     GenServer.start_link(__MODULE__, nil, name: __MODULE__)
   end
 
-  def init(nil) do
+  @impl GenServer
+  def init(_) do
     ets = :ets.new(__MODULE__, [:protected, :named_table])
     {:ok, ets}
   end
 
-  def track(pid, data) do
-    GenServer.call(__MODULE__, {:store, pid, data})
-  end
-
+  @impl GenServer
   def handle_call({:store, pid, data}, _, ets) do
     :ets.insert(ets, {pid, data})
     Process.monitor(pid)
     {:reply, :ok, ets}
+  end
+
+  def track(pid, data) do
+    GenServer.call(__MODULE__, {:store, pid, data})
   end
 
   def get(pid \\ self()) do
@@ -27,15 +29,13 @@ defmodule ExAudit.Tracking.AdditionalData do
     |> Enum.flat_map(&elem(&1, 1))
   end
 
-  def handle_info({:DOWN, _, :process, pid, _}, ets) do
-    :ets.delete(ets, pid)
-    {:noreply, ets}
-  end
+  def merge_opts(opts) when is_list(opts), do: opts ++ additional_opts()
+  def merge_opts(_), do: additional_opts()
 
-  def merge_opts(opts \\ []) do
+  defp additional_opts do
     case Process.whereis(__MODULE__) do
-      nil -> opts
-      _ -> opts ++ [ex_audit_additional: get()]
+      nil -> []
+      _ -> [ex_audit_additional: get()]
     end
   end
 end

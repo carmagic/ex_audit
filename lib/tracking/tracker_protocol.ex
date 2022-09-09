@@ -17,7 +17,6 @@ defprotocol ExAudit.Tracker do
 end
 
 defimpl ExAudit.Tracker, for: Any do
-
   defmacro __deriving__(module, struct, options) do
     deriving(module, struct, options)
   end
@@ -32,11 +31,11 @@ defimpl ExAudit.Tracker, for: Any do
           quote(do: Map.take(struct, unquote(only)))
 
         except ->
-          except = @ignored_fields ++ except
+          except = ExAudit.ignored_fields() ++ except
           quote(do: Map.drop(struct, unquote(except)))
 
         true ->
-          quote(do: Map.drop(struct, unquote(@ignored_fields)))
+          quote(do: Map.drop(struct, unquote(ExAudit.ignored_fields())))
       end
 
     quote do
@@ -49,7 +48,7 @@ defimpl ExAudit.Tracker, for: Any do
   end
 
   def map_struct(struct) do
-    ignored_fields = @ignored_fields ++ ExAudit.ignored_fields()
+    ignored_fields = ExAudit.ignored_fields()
     Map.drop(struct, ignored_fields)
   end
 end

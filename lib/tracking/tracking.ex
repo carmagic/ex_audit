@@ -38,6 +38,10 @@ defmodule ExAudit.Tracking do
     end
   end
 
+  def track_change(module, :insert_or_update, changeset, resulting_struct, opts) do
+    track_change(module, insert_or_update(changeset), changeset, resulting_struct, opts)
+  end
+
   def track_change(module, action, changeset, resulting_struct, opts) do
     if not Keyword.get(opts, :ignore_audit, false) do
       changes = find_changes(action, changeset, resulting_struct)
@@ -112,4 +116,7 @@ defmodule ExAudit.Tracking do
   defp new_data(:created, struct), do: struct
   defp new_data(:updated, struct), do: struct
   defp new_data(:deleted, _), do: %{}
+
+  defp insert_or_update(%{data: %{meta: :loaded}}), do: :updated
+  defp insert_or_update(_), do: :created
 end

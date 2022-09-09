@@ -1,12 +1,12 @@
 defmodule ExAudit.Schema do
   # def insert_all(module, name, schema_or_source, entries, tuplet = {_adapter_meta, opts}) do
   #   # TODO!
-  #   opts = ExAudit.AdditionalData.merge_opts(opts)
+  #   opts = ExAudit.Tracking.AdditionalData.merge_opts(opts)
   #   Ecto.Repo.Schema.insert_all(module, name, schema_or_source, entries, tuplet)
   # end
 
   def insert(module, name, struct, tuplet = {_adapter_meta, opts}) do
-    opts = ExAudit.AdditionalData.merge_opts(opts)
+    opts = ExAudit.Tracking.AdditionalData.merge_opts(opts)
 
     augment_transaction(module, fn ->
       result = Ecto.Repo.Schema.insert(module, name, struct, tuplet)
@@ -24,7 +24,7 @@ defmodule ExAudit.Schema do
   end
 
   def update(module, name, struct, tuplet = {_adapter_meta, opts}) do
-    opts = ExAudit.AdditionalData.merge_opts(opts)
+    opts = ExAudit.Tracking.AdditionalData.merge_opts(opts)
 
     augment_transaction(module, fn ->
       result = Ecto.Repo.Schema.update(module, name, struct, tuplet)
@@ -42,15 +42,20 @@ defmodule ExAudit.Schema do
   end
 
   def insert_or_update(module, name, changeset, tuplet = {_adapter_meta, opts}) do
-    opts = ExAudit.AdditionalData.merge_opts(opts)
+    opts = ExAudit.Tracking.AdditionalData.merge_opts(opts)
 
     augment_transaction(module, fn ->
       result = Ecto.Repo.Schema.insert_or_update(module, name, changeset, tuplet)
 
       case result do
         {:ok, resulting_struct} ->
-          state = if changeset.data.__meta__.state == :loaded, do: :updated, else: :created
-          ExAudit.Tracking.track_change(module, state, changeset, resulting_struct, opts)
+          ExAudit.Tracking.track_change(
+            module,
+            :insert_or_update,
+            changeset,
+            resulting_struct,
+            opts
+          )
 
         _ ->
           :ok
@@ -61,7 +66,7 @@ defmodule ExAudit.Schema do
   end
 
   def delete(module, name, struct, tuplet = {_adapter_meta, opts}) do
-    opts = ExAudit.AdditionalData.merge_opts(opts)
+    opts = ExAudit.Tracking.AdditionalData.merge_opts(opts)
 
     augment_transaction(module, fn ->
       ExAudit.Tracking.track_assoc_deletion(module, struct, opts)
@@ -80,7 +85,7 @@ defmodule ExAudit.Schema do
   end
 
   def insert!(module, name, struct, tuplet = {_adapter_meta, opts}) do
-    opts = ExAudit.AdditionalData.merge_opts(opts)
+    opts = ExAudit.Tracking.AdditionalData.merge_opts(opts)
 
     augment_transaction(
       module,
@@ -94,7 +99,7 @@ defmodule ExAudit.Schema do
   end
 
   def update!(module, name, struct, tuplet = {_adapter_meta, opts}) do
-    opts = ExAudit.AdditionalData.merge_opts(opts)
+    opts = ExAudit.Tracking.AdditionalData.merge_opts(opts)
 
     augment_transaction(
       module,
@@ -108,14 +113,13 @@ defmodule ExAudit.Schema do
   end
 
   def insert_or_update!(module, name, changeset, tuplet = {_adapter_meta, opts}) do
-    opts = ExAudit.AdditionalData.merge_opts(opts)
+    opts = ExAudit.Tracking.AdditionalData.merge_opts(opts)
 
     augment_transaction(
       module,
       fn ->
         result = Ecto.Repo.Schema.insert_or_update!(module, name, changeset, tuplet)
-        state = if changeset.data.__meta__.state == :loaded, do: :updated, else: :created
-        ExAudit.Tracking.track_change(module, state, changeset, result, opts)
+        ExAudit.Tracking.track_change(module, :insert_or_update, changeset, result, opts)
         result
       end,
       true
@@ -123,7 +127,7 @@ defmodule ExAudit.Schema do
   end
 
   def delete!(module, name, struct, tuplet = {_adapter_meta, opts}) do
-    opts = ExAudit.AdditionalData.merge_opts(opts)
+    opts = ExAudit.Tracking.AdditionalData.merge_opts(opts)
 
     augment_transaction(
       module,
@@ -158,9 +162,4 @@ defmodule ExAudit.Schema do
       {value, true} -> {:ok, value}
     end
   end
-
-  # Gets the custom data from the ets store that stores it by PID, and adds
-  # it to the list of custom data from the options list
-  #
-  # This is done so it works inside a transaction (which happens when ecto mutates assocs at the same time)
 end
