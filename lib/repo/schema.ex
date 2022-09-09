@@ -49,8 +49,13 @@ defmodule ExAudit.Schema do
 
       case result do
         {:ok, resulting_struct} ->
-          state = if changeset.data.__meta__.state == :loaded, do: :updated, else: :created
-          ExAudit.Tracking.track_change(module, state, changeset, resulting_struct, opts)
+          ExAudit.Tracking.track_change(
+            module,
+            :insert_or_update,
+            changeset,
+            resulting_struct,
+            opts
+          )
 
         _ ->
           :ok
@@ -114,8 +119,7 @@ defmodule ExAudit.Schema do
       module,
       fn ->
         result = Ecto.Repo.Schema.insert_or_update!(module, name, changeset, tuplet)
-        state = if changeset.data.__meta__.state == :loaded, do: :updated, else: :created
-        ExAudit.Tracking.track_change(module, state, changeset, result, opts)
+        ExAudit.Tracking.track_change(module, :insert_or_update, changeset, result, opts)
         result
       end,
       true
@@ -158,9 +162,4 @@ defmodule ExAudit.Schema do
       {value, true} -> {:ok, value}
     end
   end
-
-  # Gets the custom data from the ets store that stores it by PID, and adds
-  # it to the list of custom data from the options list
-  #
-  # This is done so it works inside a transaction (which happens when ecto mutates assocs at the same time)
 end

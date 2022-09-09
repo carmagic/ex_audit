@@ -36,20 +36,22 @@ defmodule ExAudit do
   def tracked?(_), do: false
   defoverridable(tracked?: 1)
 
-  def start(_, _) do
-    children = [
-      {ExAudit.Tracking.AdditionalData, []}
-    ]
-
-    opts = [strategy: :one_for_one, name: ExAudit.Supervisor]
-    Supervisor.start_link(children, opts)
-  end
-
   @doc """
     Adds data to the current process as supplemental data for the
     audit log
   """
   def additional_data(data) do
     ExAudit.Tracking.AdditionalData.track(self(), data)
+  end
+
+  def start(_, _) do
+    import Supervisor.Spec
+
+    children = [
+      worker(ExAudit.Tracking.AdditionalData, [])
+    ]
+
+    opts = [strategy: :one_for_one, name: ExAudit.Supervisor]
+    Supervisor.start_link(children, opts)
   end
 end
