@@ -20,6 +20,12 @@ defmodule ExAudit.Tracking.AdditionalData do
     {:reply, :ok, ets}
   end
 
+  @impl GenServer
+  def handle_info({:DOWN, _, :process, pid, _}, ets) do
+    :ets.delete(ets, pid)
+    {:noreply, ets}
+  end
+
   def track(pid, data) do
     GenServer.call(__MODULE__, {:store, pid, data})
   end
