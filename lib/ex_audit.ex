@@ -1,21 +1,25 @@
 defmodule ExAudit do
   use Application
 
-  @tracked_schemas Application.compile_env(:ex_audit, :tracked_schemas)
   @spec tracked_schemas :: list(module())
-  def tracked_schemas, do: @tracked_schemas
+  def tracked_schemas do
+    Application.fetch_env!(:ex_audit, :tracked_schemas)
+  end
 
-  @version_schema Application.compile_env(:ex_audit, :version_schema)
   @spec version_schema :: module()
-  def version_schema, do: @version_schema
+  def version_schema do
+    Application.fetch_env!(:ex_audit, :version_schema)
+  end
 
-  @primitive_structs Application.compile_env(:ex_audit, :primitive_structs, [])
   @spec primitive_structs :: list(module())
-  def primitive_structs, do: @primitive_structs || []
+  def primitive_structs do
+    Application.get_env(:ex_audit, :primitive_structs, [])
+  end
 
-  @ignored_fields Application.compile_env(:ex_audit, :ignored_fields, [])
   @spec ignored_fields :: list(atom())
-  def ignored_fields, do: @ignored_fields ++ [:__meta__, :__struct__]
+  def ignored_fields do
+    Application.get_env(:ex_audit, :ignored_fields, []) ++ [:__meta__, :__struct__]
+  end
 
   @doc """
     Indicates if a module should be tracked.
@@ -32,8 +36,7 @@ defmodule ExAudit do
   @spec tracked?(any) :: boolean
   def tracked?(%Ecto.Changeset{data: %struct{}}), do: tracked?(struct)
   def tracked?(%struct{}), do: tracked?(struct)
-  def tracked?(struct) when struct in @tracked_schemas, do: true
-  def tracked?(_), do: false
+  def tracked?(struct), do: struct in tracked_schemas()
   defoverridable(tracked?: 1)
 
   @doc """
